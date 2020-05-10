@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <!--Import JQUERY and SOCKET.IO to FrontEnd-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <form id="chat">
+        <input type="text" name="username" placeholder="Type your user!">
+        <div class="messages"></div>    
+        <input type="text" name="message" placeholder="Type your message!">
+        <button type="submit">Send</button>
+    </form>
+    
+    <script type="text/javascript">
+    /**
+     * First thing is connect with the socket and the socket is in the same address
+     * io is being defined from socket.io.js in line 9
+    */
+    let socket = io('http://localhost:3000')
+
+    //function to render the messages
+    function renderMessages(ObjMessage){
+        $('.messages').append('<div class="message"><strong>'+ObjMessage.author+'</strong>: '+ObjMessage.message+'</div>')
+    }
+
+    //when a new socket is connected
+    socket.on('previuosMessages', function(messages) {
+        for(message of messages){
+            renderMessages(message)
+        }
+    })
+
+    //needs listen what the server is sending
+    //the same name that is in the server
+    socket.on('receiveMessage', function(message) {
+        //call render to Render all message
+        renderMessages(message)
+    })
+
+    //check when this chat is summited
+    $('#chat').submit(function(event) {
+        event.preventDefault() //Not send this form
+
+        let author = $('input[name=username]').val()
+        let message = $('input[name=message]').val()
+
+        //if is greater then zero
+        if(author.length && message.length){
+            //It ill sent to socket an object
+            let messageObject = {
+                author: author,
+                message: message
+            }
+
+            //When receive the data it'll render a new message
+            renderMessages(messageObject)
+            
+            //this method will send the Obj to Back-end
+            socket.emit('sendMessage', messageObject)
+        }
+
+    })
+    </script>
+</body>
+</html>
